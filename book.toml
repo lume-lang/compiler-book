@@ -1,0 +1,13 @@
+[book]
+title = "Lume Compiler Development Book"
+authors = ["Lume Compiler Development Team"]
+language = "en"
+
+[output.html]
+definition-lists = true
+no-section-label = false
+git-repository-url = "https://github.com/lume-lang/compiler-book"
+git-repository-icon = "fab-github"
+edit-url-template = "https://github.com/lume-lang/compiler-book/edit/main/{path}"
+site-url = "/"
+sidebar-header-nav = false
