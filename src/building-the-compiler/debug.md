@@ -10,6 +10,53 @@ listed here, since they can be useful for some specific issues.
 
 ### Getting a backtrace on errors
 
+It can sometimes be hard to find out where an error is being emitted from. The `--panic-on-error` and `--track-diagnostics` flags can be useful, since they can help you place the exact line an error is being pushed.
+
+- `--panic-on-error` does exactly what the name implies - when a diagnostic is pushed, it panics. This makes it possible
+  for a developer to print a stacktrace, locating where the error was pushed:
+  ```sh
+  $ RUST_BACKTRACE=1 lume build ./sample --panic-on-error
+  [track_diagnostics] pushed from compiler/lume_typech/src/query/mod.rs:238:32
+  thread 'main' (1317499) panicked at compiler/lume_typech/src/query/mod.rs:238:32:
+  error emitted with `panic_on_error` enabled: mismatched types
+  stack backtrace:
+     0: __rustc::rust_begin_unwind
+               at /rustc/f04e3dfc87d7e2b6ad53e7a52253812cd62eba50/library/std/src/panicking.rs:698:5
+     1: core::panicking::panic_fmt
+               at /rustc/f04e3dfc87d7e2b6ad53e7a52253812cd62eba50/library/core/src/panicking.rs:80:14
+     2: lume_errors::DiagCtxInner::push
+               at ./crates/lume_errors/src/lib.rs:71:13
+     3: lume_errors::DiagCtx::emit
+               at ./crates/lume_errors/src/lib.rs:156:22
+     4: lume_typech::query::<impl lume_typech::TyCheckCtx>::check_params
+               at ./compiler/lume_typech/src/query/mod.rs:238:32
+     5: lume_typech::query::<impl lume_typech::TyCheckCtx>::check_signature
+               at ./compiler/lume_typech/src/query/mod.rs:78:14
+    (~~~~ LINES REMOVED FOR BREVITY ~~~~)
+  ```
+
+- `--track-diagnostics` is very similar, expect it does not panic. Instead, it prints a single line for each diagnostic,
+  outlining where the diagnostic was pushed from:
+  ```sh
+  $ lume build ./sample --track-diagnostics
+  [track_diagnostics] pushed from compiler/lume_typech/src/query/mod.rs:238:32
+  × error[LM4001]: mismatched types
+      ╭─[/Users/max/Documents/Projects/Lume/samples/playground/main.lm:17:17]
+   16 │     let a = 1_i32;
+   17 │     let b = a + false;
+      ∶                 ^^^^^ expected type Int32, but found type Boolean...
+   18 │ }
+      ╰──
+       ╭─[int.lm:80:34]
+   79  │ use Add<Int32> in Int32 {
+   80  │     fn external add(self, other: Int32) -> Int32
+       ∶                                  ^^^^^ ...because of type defined here
+   81  │ }
+       ╰──
+     help: expected type Int32
+              found type Boolean
+  ```
+
 ### Dumping the MIR
 
 When debugging an issue which only shows itself later in the compilation process, it might be useful to verify
